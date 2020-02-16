@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 
 /**
  * This is a demo to show you how to apply homomorphic encryption to machine learning.
@@ -7,25 +8,35 @@
  * The homomorphic encryption is based on the library named SEAL which has been opened source by Microsoft.
  * 
  **/
+using namespace std;
 
 int main()
 {
     uint32_t num;
     while (true)
     {
-        std::cout << "please select:" << std::endl;
-        std::cout << "1. train:" << std::endl;
-        std::cout << "2. test:" << std::endl;
-        std::cout << "3. recognize:" << std::endl;
-        std::cin >> num >> std::endl;
+        cout << "please select:" << endl;
+        cout << "1. test" << endl;
+        cout << "2. recognize" << endl;
+        cout << "3. exit" << endl;
+        cin >> num;
         switch (num)
         {
         case 1:
+        {
+            return 0;
+        }
         case 2:
+        {
+            return 0;
+        }
         case 3:
+        {
+            return 0;
+        }
         default:
         {
-            std::cout << "please select 1,2 or 3. Try again!"
+            cout << "please select 1, 2 or 3. Try again!" << endl;
         }
         }
     }
