@@ -1,6 +1,6 @@
 #include <iostream>
 #include <string>
-
+#include "knn.h"
 /**
  * This is a demo to show you how to apply homomorphic encryption to machine learning.
  * We implement the algorithm named KNN to recognize hand written numbers between 0 to 9.
@@ -8,7 +8,6 @@
  * The homomorphic encryption is based on the library named SEAL which has been opened source by Microsoft.
  * 
  **/
-#include "knn.h"
 
 int main()
 {
