@@ -23,6 +23,9 @@ int main()
         {
         case 1:
         {
+            KNN knn;
+            string data_path = "../data";
+            knn.test(data_path);
             return 0;
         }
         case 2:

@@ -1,10 +1,10 @@
 #include "knn.h"
 
-knn::knn(/* args */)
+KNN::KNN(/* args */)
 {
 }
 
-knn::~knn()
+KNN::~KNN()
 {
 }
 
@@ -15,13 +15,8 @@ clock_t end_time;
 
 //测试item个数
 int testNum = 10000;
-/**
- * @brief reverse the integer
- * 
- * @param i : input the integer
- * @return int : ouput an integer which is reversed
- */
-int reverseInt(int i)
+
+int KNN::reverseInt(int i)
 {
     unsigned char c1, c2, c3, c4;
 
@@ -33,14 +28,7 @@ int reverseInt(int i)
     return ((int)c1 << 24) + ((int)c2 << 16) + ((int)c3 << 8) + c4;
 }
 
-/**
-* @brief read the image of mnist data
-* 
-* @param fileName : input the file name of mnist data
-* @return Mat : matrix data of the images in mnist data
-**/
-
-Mat read_mnist_image(const string fileName)
+Mat KNN::read_mnist_image(const string fileName)
 {
     int magic_number = 0;
     int number_of_images = 0;
@@ -102,20 +90,20 @@ Mat read_mnist_image(const string fileName)
         cost_time = (end_time - start_time) / CLOCKS_PER_SEC;
         cout << "读取Image数据完毕......" << cost_time << "s\n";
 
-        imshow("first image", s);
-        imshow("last image", e);
-        waitKey(0);
+        //        imshow("first image", s);
+        //        imshow("last image", e);
+        //        waitKey(0);
     }
+    else
+    {
+        cout << "read mnist data fails" << endl;
+    }
+
     file.close();
     return DataMat;
 }
-/**
-* @brief read the label of mnist data
-* 
-* @param fileName : input the file name of mnist data
-* @return Mat : matrix data of the labels in mnist data
-*/
-Mat read_mnist_label(const string fileName)
+
+Mat KNN::read_mnist_label(const string fileName)
 {
     int magic_number;
     int number_of_items;
@@ -161,6 +149,59 @@ Mat read_mnist_label(const string fileName)
         cout << "first label = " << s << endl;
         cout << "last label = " << e << endl;
     }
+    else
+    {
+        cout << "read mnist label fails" << endl;
+    }
     file.close();
     return LabelMat;
+}
+
+std::vector<std::pair<float, unsigned int>>
+KNN::core(const Mat &train_labels, const Mat &train_images, const Mat &test_image)
+{
+    std::vector<std::pair<float, unsigned int>> scores;
+    for (int i = 0; i < train_images.rows; i++)
+    {
+        float distance = 0.0;
+        for (int j = 0; j < train_images.cols; j++)
+        {
+            distance += abs(test_image.at<float>(0, j) - train_images.at<float>(i, j));
+        }
+        scores.emplace_back(distance, train_labels.at<unsigned int>(i, 0));
+    }
+    sort(scores.begin(), scores.end(), std::less<std::pair<float, unsigned int>>());
+    return (scores);
+}
+
+void KNN::test(const std::string &data_path)
+{
+    // load MNIST dataset
+    Mat train_labels = read_mnist_label(data_path + "/train-labels.idx1-ubyte");
+    Mat train_images = read_mnist_image(data_path + "/train-images.idx3-ubyte");
+    Mat test_labels = read_mnist_label(data_path + "/t10k-labels.idx1-ubyte");
+    Mat test_images = read_mnist_image(data_path + "/t10k-images.idx3-ubyte");
+
+    std::vector<std::pair<float, unsigned int>> scores;
+    std::cout << "print the 5 labels with highest score" << std::endl;
+    int count = 0;
+    for (int k = 0; k < test_images.rows; k++)
+    {
+        scores = core(train_labels, train_images, test_images.row(k));
+        if (k < 5)
+        {
+            std::cout << scores[0].second << ",  " << scores[0].first << ",  "
+                      << "expected: " << test_labels.at<unsigned int>(k, 0) << std::endl;
+        }
+        if (scores[0].second == test_labels.at<unsigned int>(k, 0))
+        {
+            count++;
+        }
+        scores.clear();
+    }
+    std::cout << "!!! The success rate is " << (float)count / test_images.rows << std::endl;
+}
+
+int KNN::recognize(const std::string &filename)
+{
 }
