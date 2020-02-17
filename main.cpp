@@ -8,7 +8,7 @@
  * The homomorphic encryption is based on the library named SEAL which has been opened source by Microsoft.
  * 
  **/
-using namespace std;
+#include "knn.h"
 
 int main()
 {
