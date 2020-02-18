@@ -1,5 +1,8 @@
 #include "knn.h"
 
+using namespace std;
+using namespace cv;
+
 KNN::KNN(/* args */)
 {
 }
@@ -60,8 +63,8 @@ Mat KNN::read_mnist_image(const string fileName)
         //-test-
         //number_of_images = testNum;
         //输出第一张和最后一张图，检测读取数据无误
-        Mat s = Mat::zeros(n_rows, n_rows * n_cols, CV_32FC1);
-        Mat e = Mat::zeros(n_rows, n_rows * n_cols, CV_32FC1);
+        Mat s = Mat::zeros(n_rows, n_cols, CV_32FC1);
+        Mat e = Mat::zeros(n_rows, n_cols, CV_32FC1);
 
         cout << "开始读取Image数据......\n";
         start_time = clock();
@@ -202,6 +205,41 @@ void KNN::test(const std::string &data_path)
     std::cout << "!!! The success rate is " << (float)count / test_images.rows << std::endl;
 }
 
-int KNN::recognize(const std::string &filename)
+int KNN::recognize(const std::string &data_path, const std::string &filename)
 {
+    // load MNIST dataset
+    Mat train_labels = read_mnist_label(data_path + "/train-labels.idx1-ubyte");
+    Mat train_images = read_mnist_image(data_path + "/train-images.idx3-ubyte");
+    Mat test_labels = read_mnist_label(data_path + "/t10k-labels.idx1-ubyte");
+    Mat test_images = read_mnist_image(data_path + "/t10k-images.idx3-ubyte");
+    // load picture
+    Mat srcimg = imread(filename, CV_LOAD_IMAGE_GRAYSCALE);
+    if (srcimg.data == nullptr)
+    {
+        cout << "image read error" << endl;
+        return 1;
+    }
+    Mat img;
+    cv::resize(srcimg, img, cv::Size(28, 28));
+    Mat dstimg = Mat::zeros(img.rows, img.cols, CV_32FC1);
+    cv::threshold(img, dstimg, 127, 255, cv::THRESH_BINARY);
+    Mat DataMat = Mat::zeros(1, img.rows * img.cols, CV_32FC1);
+    for (int i = 0; i < img.rows; i++)
+    {
+        for (int j = 0; j < img.cols; j++)
+        {
+            dstimg.at<uchar>(i, j) = 255 - dstimg.at<uchar>(i, j);
+            int k = i * img.cols + j;
+            float pixel_value = float((dstimg.at<uchar>(i, j) + 0.0) / 255.0);
+            DataMat.at<float>(0, k) = pixel_value;
+        }
+    }
+    // recognize
+    std::vector<std::pair<float, unsigned int>> scores;
+    scores = core(train_labels, train_images, DataMat.row(0));
+    for (int i = 0; i < 10; i++)
+    {
+        std::cout << scores[i].second << ",  " << scores[i].first << std::endl;
+    }
+    return 0;
 }

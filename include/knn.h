@@ -4,8 +4,6 @@
 #include <fstream>
 #include <opencv2/opencv.hpp>
 
-using namespace cv;
-using namespace std;
 /**
  * @brief Implement the algorithm named K-NearestNeighbor.
  * 
@@ -26,7 +24,7 @@ private:
      * @param fileName : input the file name of mnist data
      * @return Mat : matrix data of the images in mnist data
      */
-    Mat read_mnist_image(const string fileName);
+    cv::Mat read_mnist_image(const std::string fileName);
     /**
      * @brief read the label of mnist data
      * 
@@ -34,7 +32,7 @@ private:
      * @return Mat : matrix data of the labels in mnist data
      */
     //
-    Mat read_mnist_label(const string fileName);
+    cv::Mat read_mnist_label(const std::string fileName);
 
 public:
     KNN(/* args */);
@@ -49,7 +47,7 @@ public:
      * @return std::vector<std::pair<float, unsigned int>> [out] scores correspond to train_labels.
      */
     std::vector<std::pair<float, unsigned int>>
-    core(const Mat &train_labels, const Mat &train_images, const Mat &test_image);
+    core(const cv::Mat &train_labels, const cv::Mat &train_images, const cv::Mat &test_image);
 
     /**
      * @brief Test the success rate of recognzie handwritten number which is between 0 and 9 using KNN algorithm.
@@ -59,9 +57,9 @@ public:
     void test(const std::string &data_path);
     /**
      * @brief Recognize a picture contains a handwritten number which is between 0 and 9.
-     * 
+     * @param data_path [in] the path of mnist data.
      * @param filename [in] the name of the picture to be recognize.
      * @return int [out] 0 is success, otherwise is fail.
      */
-    int recognize(const std::string &filename);
+    int recognize(const std::string &data_path, const std::string &filename);
 };

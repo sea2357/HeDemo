@@ -8,6 +8,8 @@
  * The homomorphic encryption is based on the library named SEAL which has been opened source by Microsoft.
  * 
  **/
+using namespace std;
+using namespace cv;
 
 int main()
 {
@@ -30,6 +32,12 @@ int main()
         }
         case 2:
         {
+            KNN knn;
+            std::string pic;
+            string data_path = "../data";
+            cout << "please specify a image file " << endl;
+            cin >> pic;
+            knn.recognize(data_path, pic);
             return 0;
         }
         case 3:
