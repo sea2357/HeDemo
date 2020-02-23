@@ -2,8 +2,9 @@
 
 using namespace std;
 using namespace cv;
+using namespace seal;
 
-KNN::KNN(/* args */)
+KNN::KNN()
 {
 }
 
@@ -179,12 +180,49 @@ KNN::core(const Mat &train_labels, const Mat &train_images, const Mat &test_imag
 
 void KNN::test(const std::string &data_path)
 {
+    //   We start by setting up the CKKS scheme.
+    EncryptionParameters parms(scheme_type::CKKS);
+    size_t poly_modulus_degree = 8192;
+    parms.set_poly_modulus_degree(poly_modulus_degree);
+    parms.set_coeff_modulus(CoeffModulus::Create(
+        poly_modulus_degree, {60, 40, 40, 60}));
+    double scale = pow(2.0, 40);
+    auto context = SEALContext::Create(parms);
+    KeyGenerator keygen(context);
     // load MNIST dataset
     Mat train_labels = read_mnist_label(data_path + "/train-labels.idx1-ubyte");
     Mat train_images = read_mnist_image(data_path + "/train-images.idx3-ubyte");
     Mat test_labels = read_mnist_label(data_path + "/t10k-labels.idx1-ubyte");
     Mat test_images = read_mnist_image(data_path + "/t10k-images.idx3-ubyte");
 
+    auto public_key = keygen.public_key();
+    auto secret_key = keygen.secret_key();
+    auto relin_keys = keygen.relin_keys();
+    Encryptor encryptor(context, public_key);
+    Evaluator evaluator(context);
+    Decryptor decryptor(context, secret_key);
+
+    CKKSEncoder encoder(context);
+#if 0
+    std::vector<std::vector<Ciphertext>> 
+        encrypted_train_labels(train_labels.rows, std::vector<Ciphertext>(train_labels.cols));
+    std::vector<std::vector<Ciphertext>> 
+        encrypted_train_images(train_images.rows, std::vector<Ciphertext>(train_images.cols));
+    std::vector<std::vector<Ciphertext>> 
+        encrypted_test_images(test_images.rows, std::vector<Ciphertext>(test_images.cols));
+    Plaintext tmp;
+    
+    for (int i = 0; i < train_images.rows; i++)
+    {
+        for (int j = 0; j < train_images.cols; j++)
+        {
+            encoder.encode(train_images.at<float>(i, j), scale, tmp);
+            encryptor.encrypt(tmp, encrypted_train_images[i][j]);
+        }
+        encoder.encode(train_labels.at<unsigend int>(i,0), scale, tmp);
+        encryptor.encrypt(tmp, encrypted_train_labels[i][0]);
+    }
+#endif
     std::vector<std::pair<float, unsigned int>> scores;
     std::cout << "print the 5 labels with highest score" << std::endl;
     int count = 0;
@@ -207,11 +245,27 @@ void KNN::test(const std::string &data_path)
 
 int KNN::recognize(const std::string &data_path, const std::string &filename)
 {
+    //   We start by setting up the CKKS scheme.
+    EncryptionParameters parms(scheme_type::CKKS);
+    size_t poly_modulus_degree = 8192;
+    parms.set_poly_modulus_degree(poly_modulus_degree);
+    parms.set_coeff_modulus(CoeffModulus::Create(
+        poly_modulus_degree, {60, 40, 40, 60}));
+    double scale = pow(2.0, 40);
+    auto context = SEALContext::Create(parms);
+    KeyGenerator keygen(context);
+    auto public_key = keygen.public_key();
+    auto secret_key = keygen.secret_key();
+    auto relin_keys = keygen.relin_keys();
+    Encryptor encryptor(context, public_key);
+    Evaluator evaluator(context);
+    Decryptor decryptor(context, secret_key);
+
+    CKKSEncoder encoder(context);
     // load MNIST dataset
     Mat train_labels = read_mnist_label(data_path + "/train-labels.idx1-ubyte");
     Mat train_images = read_mnist_image(data_path + "/train-images.idx3-ubyte");
-    Mat test_labels = read_mnist_label(data_path + "/t10k-labels.idx1-ubyte");
-    Mat test_images = read_mnist_image(data_path + "/t10k-images.idx3-ubyte");
+
     // load picture
     Mat srcimg = imread(filename, CV_LOAD_IMAGE_GRAYSCALE);
     if (srcimg.data == nullptr)
@@ -234,12 +288,77 @@ int KNN::recognize(const std::string &data_path, const std::string &filename)
             DataMat.at<float>(0, k) = pixel_value;
         }
     }
+    //encrypt
+    size_t slot_count = encoder.slot_count();
+    cout << "Number of slots: " << slot_count << endl;
+    size_t rows = 30;
+    std::vector<std::vector<Ciphertext>>
+        encrypted_train_labels(rows, std::vector<Ciphertext>(train_labels.cols));
+    std::vector<std::vector<Ciphertext>>
+        encrypted_train_images(rows, std::vector<Ciphertext>(train_images.cols));
+    std::vector<std::vector<Ciphertext>>
+        encrypted_image(1, std::vector<Ciphertext>(DataMat.cols));
+    Plaintext tmp;
+
+    for (int i = 0; i < rows; i++)
+    {
+        for (int j = 0; j < train_images.cols; j++)
+        {
+            encoder.encode(train_images.at<float>(i, j), scale, tmp);
+            encryptor.encrypt(tmp, encrypted_train_images[i][j]);
+        }
+        encoder.encode(train_labels.at<unsigned int>(i, 0), scale, tmp);
+        encryptor.encrypt(tmp, encrypted_train_labels[i][0]);
+    }
+
+    for (int j = 0; j < DataMat.cols; j++)
+    {
+        encoder.encode(DataMat.at<float>(0, j), scale, tmp);
+        encryptor.encrypt(tmp, encrypted_image[0][j]);
+    }
     // recognize
-    std::vector<std::pair<float, unsigned int>> scores;
-    scores = core(train_labels, train_images, DataMat.row(0));
+    Ciphertext ctmp;
+    std::vector<std::pair<Ciphertext, Ciphertext>> encrypted_res;
+    Ciphertext distance, square_dist;
+    Ciphertext dsum;
+    for (int i = 0; i < rows; i++)
+    {
+        evaluator.sub(encrypted_image[0][0], encrypted_train_images[i][0], distance);
+        evaluator.square(distance, dsum);
+        for (int j = 1; j < encrypted_train_images[0].size(); j++)
+        {
+            evaluator.sub(encrypted_image[0][j], encrypted_train_images[i][j], distance);
+            evaluator.square(distance, square_dist);
+            evaluator.relinearize_inplace(square_dist, relin_keys);
+            evaluator.rescale_to_next_inplace(square_dist);
+            parms_id_type last_parms_id = square_dist.parms_id();
+            evaluator.mod_switch_to_inplace(dsum, last_parms_id);
+            dsum.scale() = pow(2.0, 40);
+            square_dist.scale() = pow(2.0, 40);
+            evaluator.add(dsum, square_dist, dsum);
+            //distance += abs(test_image[0][j] - train_images[i][j]);
+        }
+        encrypted_res.emplace_back(dsum, encrypted_train_labels[i][0]);
+    }
+
+    //decrypt
+    std::vector<std::pair<float, unsigned int>> res(encrypted_train_images.size());
+    vector<double> dtmp;
+    for (int i = 0; i < encrypted_train_images.size(); i++)
+    {
+        decryptor.decrypt(encrypted_res[i].first, tmp);
+        encoder.decode(tmp, dtmp);
+        res[i].first = dtmp[0];
+
+        decryptor.decrypt(encrypted_res[i].second, tmp);
+        encoder.decode(tmp, dtmp);
+        res[i].second = dtmp[0];
+    }
+    sort(res.begin(), res.end(), std::less<std::pair<float, unsigned int>>());
+
     for (int i = 0; i < 10; i++)
     {
-        std::cout << scores[i].second << ",  " << scores[i].first << std::endl;
+        std::cout << res[i].second << ",  " << res[i].first << std::endl;
     }
     return 0;
 }

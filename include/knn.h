@@ -3,6 +3,7 @@
 #include <string>
 #include <fstream>
 #include <opencv2/opencv.hpp>
+#include "seal.h"
 
 /**
  * @brief Implement the algorithm named K-NearestNeighbor.
@@ -10,6 +11,7 @@
  */
 class KNN
 {
+
 private:
     /**
      * @brief reverse the integer
@@ -17,7 +19,8 @@ private:
      * @param i : input the integer
      * @return int : ouput an integer which is reversed
      */
-    int reverseInt(int i);
+    int
+    reverseInt(int i);
     /**
      * @brief read the image of mnist data
      * 
