@@ -245,6 +245,59 @@ void KNN::test(const std::string &data_path)
 
 int KNN::recognize(const std::string &data_path, const std::string &filename)
 {
+    // load MNIST dataset
+    Mat train_labels = read_mnist_label(data_path + "/train-labels.idx1-ubyte");
+    Mat train_images = read_mnist_image(data_path + "/train-images.idx3-ubyte");
+
+    // load picture
+    Mat srcimg = imread(filename, CV_LOAD_IMAGE_GRAYSCALE);
+    if (srcimg.data == nullptr)
+    {
+        cout << "image read error" << endl;
+        return 1;
+    }
+    Mat img;
+    cv::resize(srcimg, img, cv::Size(28, 28));
+    Mat dstimg = Mat::zeros(img.rows, img.cols, CV_32FC1);
+    cv::threshold(img, dstimg, 127, 255, cv::THRESH_BINARY);
+    Mat DataMat = Mat::zeros(1, img.rows * img.cols, CV_32FC1);
+    for (int i = 0; i < img.rows; i++)
+    {
+        for (int j = 0; j < img.cols; j++)
+        {
+            dstimg.at<uchar>(i, j) = 255 - dstimg.at<uchar>(i, j);
+            int k = i * img.cols + j;
+            float pixel_value = float((dstimg.at<uchar>(i, j) + 0.0) / 255.0);
+            DataMat.at<float>(0, k) = pixel_value;
+        }
+    }
+
+    // recognize
+    std::cout << "start recognizing......" << std::endl;
+    int rows = 30;
+    std::vector<std::pair<float, unsigned int>> res;
+    float distance;
+    for (int i = 0; i < rows; i++)
+    {
+        distance = 0.0;
+        for (int j = 1; j < train_images.cols; j++)
+        {
+            distance += (DataMat.at<float>(0, j) - train_images.at<float>(i, j)) * (DataMat.at<float>(0, j) - train_images.at<float>(i, j));
+        }
+        res.emplace_back(distance, train_labels.at<unsigned int>(i, 0));
+    }
+
+    sort(res.begin(), res.end(), std::less<std::pair<float, unsigned int>>());
+
+    for (int i = 0; i < 10; i++)
+    {
+        std::cout << res[i].second << ",  " << res[i].first << std::endl;
+    }
+    return 0;
+}
+
+int KNN::ciphertext_recognize(const std::string &data_path, const std::string &filename)
+{
     //   We start by setting up the CKKS scheme.
     EncryptionParameters parms(scheme_type::CKKS);
     size_t poly_modulus_degree = 8192;
@@ -260,8 +313,17 @@ int KNN::recognize(const std::string &data_path, const std::string &filename)
     Encryptor encryptor(context, public_key);
     Evaluator evaluator(context);
     Decryptor decryptor(context, secret_key);
-
     CKKSEncoder encoder(context);
+
+    KeyGenerator keygen2(context);
+    auto public_key2 = keygen2.public_key();
+    auto secret_key2 = keygen2.secret_key();
+    auto relin_keys2 = keygen2.relin_keys();
+    Encryptor encryptor2(context, public_key2);
+    Evaluator evaluator2(context);
+    Decryptor decryptor2(context, secret_key2);
+    CKKSEncoder encoder2(context);
+
     // load MNIST dataset
     Mat train_labels = read_mnist_label(data_path + "/train-labels.idx1-ubyte");
     Mat train_images = read_mnist_image(data_path + "/train-images.idx3-ubyte");
@@ -289,8 +351,7 @@ int KNN::recognize(const std::string &data_path, const std::string &filename)
         }
     }
     //encrypt
-    size_t slot_count = encoder.slot_count();
-    cout << "Number of slots: " << slot_count << endl;
+    std::cout << "start encrypting......" << std::endl;
     size_t rows = 30;
     std::vector<std::vector<Ciphertext>>
         encrypted_train_labels(rows, std::vector<Ciphertext>(train_labels.cols));
@@ -298,7 +359,7 @@ int KNN::recognize(const std::string &data_path, const std::string &filename)
         encrypted_train_images(rows, std::vector<Ciphertext>(train_images.cols));
     std::vector<std::vector<Ciphertext>>
         encrypted_image(1, std::vector<Ciphertext>(DataMat.cols));
-    Plaintext tmp;
+    Plaintext tmp, tmp2;
 
     for (int i = 0; i < rows; i++)
     {
@@ -307,8 +368,8 @@ int KNN::recognize(const std::string &data_path, const std::string &filename)
             encoder.encode(train_images.at<float>(i, j), scale, tmp);
             encryptor.encrypt(tmp, encrypted_train_images[i][j]);
         }
-        encoder.encode(train_labels.at<unsigned int>(i, 0), scale, tmp);
-        encryptor.encrypt(tmp, encrypted_train_labels[i][0]);
+        encoder2.encode(train_labels.at<unsigned int>(i, 0), scale, tmp2);
+        encryptor2.encrypt(tmp2, encrypted_train_labels[i][0]);
     }
 
     for (int j = 0; j < DataMat.cols; j++)
@@ -317,6 +378,7 @@ int KNN::recognize(const std::string &data_path, const std::string &filename)
         encryptor.encrypt(tmp, encrypted_image[0][j]);
     }
     // recognize
+    std::cout << "start recognizing......" << std::endl;
     Ciphertext ctmp;
     std::vector<std::pair<Ciphertext, Ciphertext>> encrypted_res;
     Ciphertext distance, square_dist;
@@ -336,23 +398,25 @@ int KNN::recognize(const std::string &data_path, const std::string &filename)
             dsum.scale() = pow(2.0, 40);
             square_dist.scale() = pow(2.0, 40);
             evaluator.add(dsum, square_dist, dsum);
-            //distance += abs(test_image[0][j] - train_images[i][j]);
+            //distance += (test_image[0][j] - train_images[i][j])^2;
         }
         encrypted_res.emplace_back(dsum, encrypted_train_labels[i][0]);
     }
 
     //decrypt
+    std::cout << "start decrypting......" << std::endl;
     std::vector<std::pair<float, unsigned int>> res(encrypted_train_images.size());
     vector<double> dtmp;
-    for (int i = 0; i < encrypted_train_images.size(); i++)
+    vector<double> dtmp2;
+    for (int i = 0; i < rows; i++)
     {
         decryptor.decrypt(encrypted_res[i].first, tmp);
         encoder.decode(tmp, dtmp);
         res[i].first = dtmp[0];
 
-        decryptor.decrypt(encrypted_res[i].second, tmp);
-        encoder.decode(tmp, dtmp);
-        res[i].second = dtmp[0];
+        decryptor2.decrypt(encrypted_res[i].second, tmp2);
+        encoder2.decode(tmp2, dtmp2);
+        res[i].second = (unsigned int)dtmp2[0];
     }
     sort(res.begin(), res.end(), std::less<std::pair<float, unsigned int>>());
 

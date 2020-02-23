@@ -18,8 +18,9 @@ int main()
     {
         cout << "please select:" << endl;
         cout << "1. test" << endl;
-        cout << "2. recognize" << endl;
-        cout << "3. exit" << endl;
+        cout << "2. recognize a picture" << endl;
+        cout << "3. recognize an encrypted picture" << endl;
+        cout << "4. exit" << endl;
         cin >> num;
         switch (num)
         {
@@ -41,6 +42,16 @@ int main()
             return 0;
         }
         case 3:
+        {
+            KNN knn;
+            std::string pic;
+            string data_path = "../data";
+            cout << "please specify a image file " << endl;
+            cin >> pic;
+            knn.ciphertext_recognize(data_path, pic);
+            return 0;
+        }
+        case 4:
         {
             return 0;
         }
