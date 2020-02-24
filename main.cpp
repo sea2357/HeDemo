@@ -13,21 +13,22 @@ using namespace cv;
 
 int main()
 {
-    uint32_t num;
+    uint32_t s;
     while (true)
     {
         KNN knn;
         string pic;
         string data_path = "../data";
         size_t num = 70;
-        cout << "please select:" << endl;
+
         cout << "1. test using default parameters" << endl;
         cout << "2. recognize a plaintext picture" << endl;
         cout << "3. recognize an encrypted picture" << endl;
         cout << "4. test the success rate" << endl;
         cout << "5. exit" << endl;
-        cin >> num;
-        switch (num)
+        cout << "please select: ";
+        cin >> s;
+        switch (s)
         {
         case 1:
         {
@@ -56,7 +57,10 @@ int main()
         }
         case 4:
         {
-            knn.test(data_path);
+            cout << "Please input the number of train images to be used. Remember that the more images used, the higher of the success rate." << endl;
+            cout << "num = ";
+            cin >> num;
+            knn.test(data_path, num);
         }
         case 5:
         {
