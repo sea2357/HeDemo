@@ -38,7 +38,8 @@ int main()
             string data_path = "../data";
             cout << "please specify a image file " << endl;
             cin >> pic;
-            knn.recognize(data_path, pic);
+            size_t num = 70;
+            knn.recognize(data_path, pic, num);
             return 0;
         }
         case 3:
@@ -48,7 +49,8 @@ int main()
             string data_path = "../data";
             cout << "please specify a image file " << endl;
             cin >> pic;
-            knn.ciphertext_recognize(data_path, pic);
+            size_t num = 70;
+            knn.ciphertext_recognize(data_path, pic, num);
             return 0;
         }
         case 4:

@@ -243,7 +243,7 @@ void KNN::test(const std::string &data_path)
     std::cout << "!!! The success rate is " << (float)count / test_images.rows << std::endl;
 }
 
-int KNN::recognize(const std::string &data_path, const std::string &filename)
+int KNN::recognize(const std::string &data_path, const std::string &filename, const size_t num)
 {
     // load MNIST dataset
     Mat train_labels = read_mnist_label(data_path + "/train-labels.idx1-ubyte");
@@ -274,7 +274,7 @@ int KNN::recognize(const std::string &data_path, const std::string &filename)
 
     // recognize
     std::cout << "start recognizing......" << std::endl;
-    int rows = 30;
+    int rows = num;
     std::vector<std::pair<float, unsigned int>> res;
     float distance;
     for (int i = 0; i < rows; i++)
@@ -296,7 +296,7 @@ int KNN::recognize(const std::string &data_path, const std::string &filename)
     return 0;
 }
 
-int KNN::ciphertext_recognize(const std::string &data_path, const std::string &filename)
+int KNN::ciphertext_recognize(const std::string &data_path, const std::string &filename, const size_t num)
 {
     //   We start by setting up the CKKS scheme.
     EncryptionParameters parms(scheme_type::CKKS);
@@ -306,6 +306,7 @@ int KNN::ciphertext_recognize(const std::string &data_path, const std::string &f
         poly_modulus_degree, {60, 40, 40, 60}));
     double scale = pow(2.0, 40);
     auto context = SEALContext::Create(parms);
+    // keys for images
     KeyGenerator keygen(context);
     auto public_key = keygen.public_key();
     auto secret_key = keygen.secret_key();
@@ -314,7 +315,7 @@ int KNN::ciphertext_recognize(const std::string &data_path, const std::string &f
     Evaluator evaluator(context);
     Decryptor decryptor(context, secret_key);
     CKKSEncoder encoder(context);
-
+    // keys for labels
     KeyGenerator keygen2(context);
     auto public_key2 = keygen2.public_key();
     auto secret_key2 = keygen2.secret_key();
@@ -352,7 +353,7 @@ int KNN::ciphertext_recognize(const std::string &data_path, const std::string &f
     }
     //encrypt
     std::cout << "start encrypting......" << std::endl;
-    size_t rows = 30;
+    size_t rows = num;
     std::vector<std::vector<Ciphertext>>
         encrypted_train_labels(rows, std::vector<Ciphertext>(train_labels.cols));
     std::vector<std::vector<Ciphertext>>
@@ -405,7 +406,7 @@ int KNN::ciphertext_recognize(const std::string &data_path, const std::string &f
 
     //decrypt
     std::cout << "start decrypting......" << std::endl;
-    std::vector<std::pair<float, unsigned int>> res(encrypted_train_images.size());
+    std::vector<std::pair<float, double>> res(encrypted_train_images.size());
     vector<double> dtmp;
     vector<double> dtmp2;
     for (int i = 0; i < rows; i++)
@@ -416,9 +417,9 @@ int KNN::ciphertext_recognize(const std::string &data_path, const std::string &f
 
         decryptor2.decrypt(encrypted_res[i].second, tmp2);
         encoder2.decode(tmp2, dtmp2);
-        res[i].second = (unsigned int)dtmp2[0];
+        res[i].second = dtmp2[0] > 0 ? dtmp2[0] : 0;
     }
-    sort(res.begin(), res.end(), std::less<std::pair<float, unsigned int>>());
+    sort(res.begin(), res.end(), std::less<std::pair<float, double>>());
 
     for (int i = 0; i < 10; i++)
     {

@@ -62,15 +62,17 @@ public:
      * @brief Recognize a picture contains a handwritten number which is between 0 and 9.
      * @param data_path [in] the path of mnist data.
      * @param filename [in] the name of the picture to be recognize.
+     * @param num [in] the number of train pictures to be used.
      * @return int [out] 0 is success, otherwise is fail.
      */
-    int recognize(const std::string &data_path, const std::string &filename);
+    int recognize(const std::string &data_path, const std::string &filename, const size_t num = 70);
 
     /**
      * @brief Recognize a encrypted picture contains a handwritten number which is between 0 and 9.
      * @param data_path [in] the path of mnist data.
      * @param filename [in] the name of the picture to be recognize.
+     * @param num [in] the number of train pictures to be used.
      * @return int [out] 0 is success, otherwise is fail.
      */
-    int ciphertext_recognize(const std::string &data_path, const std::string &filename);
+    int ciphertext_recognize(const std::string &data_path, const std::string &filename, const size_t num = 70);
 };
