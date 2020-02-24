@@ -22,7 +22,7 @@ int main()
         size_t num = 70;
         cout << "please select:" << endl;
         cout << "1. test using default parameters" << endl;
-        cout << "2. recognize a picture" << endl;
+        cout << "2. recognize a plaintext picture" << endl;
         cout << "3. recognize an encrypted picture" << endl;
         cout << "4. test the success rate" << endl;
         cout << "5. exit" << endl;
