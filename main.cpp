@@ -24,8 +24,9 @@ int main()
         cout << "1. test using default parameters" << endl;
         cout << "2. recognize a plaintext picture" << endl;
         cout << "3. recognize an encrypted picture" << endl;
-        cout << "4. test the success rate" << endl;
-        cout << "5. exit" << endl;
+        cout << "4. recognize an encrypted picture, and compress 4096 train images into one plaintext" << endl;
+        cout << "5. test the success rate" << endl;
+        cout << "6. exit" << endl;
         cout << "please select: ";
         cin >> s;
         switch (s)
@@ -57,18 +58,25 @@ int main()
         }
         case 4:
         {
+            cout << "please specify a image file, e.g. ../data/4.bmp " << endl;
+            cin >> pic;
+            knn.ciphertext_recognize_compressed(data_path, pic);
+            return 0;
+        }
+        case 5:
+        {
             cout << "Please input the number of train images to be used. Remember that the more images used, the higher of the success rate." << endl;
             cout << "num = ";
             cin >> num;
             knn.test(data_path, num);
         }
-        case 5:
+        case 6:
         {
             return 0;
         }
         default:
         {
-            cout << "please select 1, 2, 3, 4 or 5. Try again!" << endl;
+            cout << "please select 1, 2, 3, 4 , 5 or 6. Try again!" << endl;
         }
         }
     }
