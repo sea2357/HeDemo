@@ -14,13 +14,12 @@ using namespace cv;
 int main()
 {
     uint32_t s;
+    KNN knn;
+    string pic;
+    string data_path = "../data";
+    size_t num = 70;
     while (true)
     {
-        KNN knn;
-        string pic;
-        string data_path = "../data";
-        size_t num = 70;
-
         cout << "1. test using default parameters" << endl;
         cout << "2. recognize a plaintext picture" << endl;
         cout << "3. recognize an encrypted picture" << endl;
@@ -73,13 +72,14 @@ int main()
                 if ((num > 10000) || (num <= 0))
                 {
                     std::cout << "please input num > 0 and num < 10000 " << std::endl;
-                }else
+                }
+                else
                 {
                     break;
                 }
-                
             }
             knn.test(data_path, num);
+            return 0;
         }
         case 6:
         {
@@ -91,5 +91,4 @@ int main()
         }
         }
     }
-    return 0;
 }

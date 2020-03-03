@@ -10,7 +10,7 @@ How to install and run test.
 
 How to generate documents.
 1. cd HeDemo 
-2. doxygen Doxyfile
+2. doxygen Doxyfile<br>
 Then the documents is generated in HeDemo/html.
 
 Problems may be encountered.
