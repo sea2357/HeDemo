@@ -209,6 +209,7 @@ int KNN::recognize(const std::string &data_path, const std::string &filename, co
     {
         std::cout << res[i].second << ",  " << res[i].first << std::endl;
     }
+    std::cout << "Result: the number in the image is " << res[0].second << std::endl;
     return 0;
 }
 
@@ -341,6 +342,7 @@ int KNN::ciphertext_recognize(const std::string &data_path, const std::string &f
     {
         std::cout << res[i].second << ",  " << res[i].first << std::endl;
     }
+    std::cout << "Result: the number in the image is " << res[0].second << std::endl;
     return 0;
 }
 
@@ -487,5 +489,6 @@ int KNN::ciphertext_recognize_compressed(const std::string &data_path, const std
     {
         std::cout << res[i].second << ",  " << res[i].first << std::endl;
     }
+    std::cout << "Result: the number in the image is " << res[0].second << std::endl;
     return 0;
 }
