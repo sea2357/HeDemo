@@ -157,7 +157,7 @@ void KNN::test(const std::string &data_path, const size_t num)
         }
         scores.clear();
     }
-    std::cout << "!!! The success rate is " << (float)count / num << std::endl;
+    std::cout << "The success rate is " << (float)count / num << std::endl;
 }
 
 int KNN::recognize(const std::string &data_path, const std::string &filename, const size_t num)

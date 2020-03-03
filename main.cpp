@@ -65,9 +65,20 @@ int main()
         }
         case 5:
         {
-            cout << "Please input the number of train images to be used. Remember that the more images used, the higher of the success rate." << endl;
-            cout << "num = ";
-            cin >> num;
+            cout << "Please input the number  of train images to be used. Remember that the more images used, the higher of the success rate." << endl;
+            while (true)
+            {
+                cout << "num = ";
+                cin >> num;
+                if ((num > 10000) || (num <= 0))
+                {
+                    std::cout << "please input num > 0 and num < 10000 " << std::endl;
+                }else
+                {
+                    break;
+                }
+                
+            }
             knn.test(data_path, num);
         }
         case 6:
