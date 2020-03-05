@@ -162,6 +162,7 @@ void KNN::test(const std::string &data_path, const size_t num)
 
 int KNN::recognize(const std::string &data_path, const std::string &filename, const size_t num)
 {
+    start_time = clock();
     // load MNIST dataset
     Mat train_labels = read_mnist_label(data_path + "/train-labels.idx1-ubyte", num);
     Mat train_images = read_mnist_image(data_path + "/train-images.idx3-ubyte", num);
@@ -210,11 +211,15 @@ int KNN::recognize(const std::string &data_path, const std::string &filename, co
         std::cout << res[i].second << ",  " << res[i].first << std::endl;
     }
     std::cout << "Result: the number in the image is " << res[0].second << std::endl;
+    end_time = clock();
+    cost_time = (end_time - start_time) * 1000.0 / CLOCKS_PER_SEC;
+    cout << "The time is: " << cost_time << "ms\n";
     return 0;
 }
 
 int KNN::ciphertext_recognize(const std::string &data_path, const std::string &filename, const size_t num)
 {
+    start_time = clock();
     //   We start by setting up the CKKS scheme.
     EncryptionParameters parms(scheme_type::CKKS);
     size_t poly_modulus_degree = 8192;
@@ -343,11 +348,15 @@ int KNN::ciphertext_recognize(const std::string &data_path, const std::string &f
         std::cout << res[i].second << ",  " << res[i].first << std::endl;
     }
     std::cout << "Result: the number in the image is " << res[0].second << std::endl;
+    end_time = clock();
+    cost_time = (end_time - start_time) / CLOCKS_PER_SEC;
+    cout << "The time is: " << cost_time << "s\n";
     return 0;
 }
 
 int KNN::ciphertext_recognize_compressed(const std::string &data_path, const std::string &filename)
 {
+    start_time = clock();
     //   We start by setting up the CKKS scheme.
     EncryptionParameters parms(scheme_type::CKKS);
     size_t poly_modulus_degree = 8192;
@@ -490,5 +499,8 @@ int KNN::ciphertext_recognize_compressed(const std::string &data_path, const std
         std::cout << res[i].second << ",  " << res[i].first << std::endl;
     }
     std::cout << "Result: the number in the image is " << res[0].second << std::endl;
+    end_time = clock();
+    cost_time = (end_time - start_time) * 1000.0 / CLOCKS_PER_SEC;
+    cout << "The time is: " << cost_time << "ms\n";
     return 0;
 }

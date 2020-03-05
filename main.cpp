@@ -43,7 +43,7 @@ int main()
         {
             cout << "please specify a image file, e.g. ../data/4.bmp " << endl;
             cin >> pic;
-            size_t num = 70;
+            size_t num = 4096;
             knn.recognize(data_path, pic, num);
             return 0;
         }
