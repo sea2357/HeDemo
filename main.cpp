@@ -16,7 +16,7 @@ int main()
     uint32_t s;
     KNN knn;
     string pic;
-    string data_path = "../data";
+    string data_path;
     size_t num = 70;
     while (true)
     {
@@ -41,7 +41,9 @@ int main()
         }
         case 2:
         {
-            cout << "please specify a image file, e.g. ../data/4.bmp " << endl;
+            cout << "please input the path of train images, e.g. ../data " << endl;
+            cin >> data_path;
+            cout << "please specify an image file  to recognize, e.g. ../data/4.bmp " << endl;
             cin >> pic;
             size_t num = 4096;
             knn.recognize(data_path, pic, num);
@@ -49,7 +51,9 @@ int main()
         }
         case 3:
         {
-            cout << "please specify a image file, e.g. ../data/4.bmp " << endl;
+            cout << "please input the path of train images, e.g. ../data " << endl;
+            cin >> data_path;
+            cout << "please specify an image file  to recognize, e.g. ../data/4.bmp " << endl;
             cin >> pic;
             size_t num = 70;
             knn.ciphertext_recognize(data_path, pic, num);
@@ -57,7 +61,9 @@ int main()
         }
         case 4:
         {
-            cout << "please specify a image file, e.g. ../data/4.bmp " << endl;
+            cout << "please input the path of train images, e.g. ../data " << endl;
+            cin >> data_path;
+            cout << "please specify an image file to recognize, e.g. ../data/4.bmp " << endl;
             cin >> pic;
             knn.ciphertext_recognize_compressed(data_path, pic);
             return 0;
