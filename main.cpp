@@ -20,26 +20,16 @@ int main()
     size_t num = 70;
     while (true)
     {
-        cout << "1. test using default parameters" << endl;
-        cout << "2. recognize a plaintext picture" << endl;
-        cout << "3. recognize an encrypted picture" << endl;
-        cout << "4. recognize an encrypted picture, and compress 4096 train images into one plaintext" << endl;
-        cout << "5. test the success rate" << endl;
-        cout << "6. exit" << endl;
+        cout << "1. recognize a plaintext picture" << endl;
+        cout << "2. recognize an encrypted picture" << endl;
+        cout << "3. recognize an encrypted picture, and compress 4096 train images into one plaintext" << endl;
+        cout << "4. test the success rate" << endl;
+        cout << "5. exit" << endl;
         cout << "please select: ";
         cin >> s;
         switch (s)
         {
         case 1:
-        {
-            pic = "../data/4.bmp";
-            cout << "recognize 4.bmp using plaintext......" << endl;
-            knn.recognize(data_path, pic, num);
-            cout << "recognize 4.bmp using ciphertext......" << endl;
-            knn.ciphertext_recognize(data_path, pic, num);
-            return 0;
-        }
-        case 2:
         {
             cout << "please input the path of train images, e.g. ../data " << endl;
             cin >> data_path;
@@ -49,7 +39,7 @@ int main()
             knn.recognize(data_path, pic, num);
             return 0;
         }
-        case 3:
+        case 2:
         {
             cout << "please input the path of train images, e.g. ../data " << endl;
             cin >> data_path;
@@ -59,7 +49,7 @@ int main()
             knn.ciphertext_recognize(data_path, pic, num);
             return 0;
         }
-        case 4:
+        case 3:
         {
             cout << "please input the path of train images, e.g. ../data " << endl;
             cin >> data_path;
@@ -68,7 +58,7 @@ int main()
             knn.ciphertext_recognize_compressed(data_path, pic);
             return 0;
         }
-        case 5:
+        case 4:
         {
             cout << "Please input the number  of train images to be used. Remember that the more images used, the higher of the success rate." << endl;
             while (true)
@@ -87,13 +77,13 @@ int main()
             knn.test(data_path, num);
             return 0;
         }
-        case 6:
+        case 5:
         {
             return 0;
         }
         default:
         {
-            cout << "please select 1, 2, 3, 4 , 5 or 6. Try again!" << endl;
+            cout << "please select 1, 2, 3, 4 or 5. Try again!" << endl;
         }
         }
     }
