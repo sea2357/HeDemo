@@ -22,7 +22,7 @@ int main()
     {
         cout << "1. recognize a plaintext picture" << endl;
         cout << "2. recognize an encrypted picture" << endl;
-        cout << "3. recognize an encrypted picture, and compress 4096 train images into one plaintext" << endl;
+        cout << "3. recognize an encrypted picture, and package each bit from 4096 train images on the same ciphertext" << endl;
         cout << "4. test the success rate" << endl;
         cout << "5. exit" << endl;
         cout << "please select: ";
